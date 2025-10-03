@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://ai-expense-tracker-backend-b6es.onrender.com';
 
 // Data Storage
 let financeData = {
@@ -955,4 +955,5 @@ function processSpokenTransaction(text) {
   if (typeof renderTransactions === "function") {
     renderTransactions([tx]);
   }
+
 }
