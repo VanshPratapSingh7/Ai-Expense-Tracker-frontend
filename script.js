@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'https://ai-expense-tracker-backend-b6es.onrender.com';
+const API_URL = "https://ai-expense-tracker-backend-b6es.onrender.com/api";
 
 // Data Storage
 let financeData = {
@@ -108,14 +108,13 @@ async function loadDataFromServer() {
         const data = await response.json();
         
         if (data.success && data.data) {
-    financeData = data.data;
-    updateGoalsProgress();   // <-- recalc goals from loaded transactions/settings
-    updateUI();
-}
-
+            financeData = data.data;
+            updateGoalsProgress();   // recalc goals
+            updateUI();
+        }
     } catch (error) {
         console.error('Error loading data:', error);
-        showNotification('Using offline mode - Start Python backend to save data', 'warning');
+        showNotification('Backend not reachable. Running in offline mode.', 'warning');
         updateUI();
     }
 }
@@ -124,19 +123,14 @@ async function saveDataToServer() {
     try {
         const response = await fetch(`${API_URL}/data`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(financeData)
         });
-        
         const result = await response.json();
-        if (!result.success) {
-            throw new Error('Failed to save data');
-        }
+        if (!result.success) throw new Error('Failed to save data');
     } catch (error) {
         console.error('Error saving data:', error);
-        showNotification('Changes saved locally only', 'warning');
+        showNotification('Changes saved locally only (backend offline)', 'warning');
     }
 }
 
@@ -193,14 +187,10 @@ async function saveSettings() {
     showNotification('Settings saved successfully!', 'success');
 }
 
-// Reset all data
 async function resetData() {
     if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
         try {
-            const response = await fetch(`${API_URL}/reset`, {
-                method: 'POST'
-            });
-            
+            const response = await fetch(`${API_URL}/reset`, { method: 'POST' });
             const result = await response.json();
             if (result.success) {
                 financeData = {
@@ -220,7 +210,7 @@ async function resetData() {
             }
         } catch (error) {
             console.error('Error resetting data:', error);
-            showNotification('Error resetting data', 'error');
+            showNotification('Error resetting data (backend offline)', 'error');
         }
     }
 }
@@ -955,5 +945,4 @@ function processSpokenTransaction(text) {
   if (typeof renderTransactions === "function") {
     renderTransactions([tx]);
   }
-
 }
