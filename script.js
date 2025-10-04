@@ -946,3 +946,82 @@ function processSpokenTransaction(text) {
     renderTransactions([tx]);
   }
 }
+
+// Mock notifications
+const mockNotifications = [
+    "Credited ₹5000 Salary",
+    "Debited ₹1200 Amazon Shopping",
+    "Debited ₹500 Uber Ride",
+    "Credited ₹200 Cashback",
+    "Debited ₹3000 Rent"
+];
+
+let mockIndex = 0;
+let mockInterval = null;
+
+// Show notification popup
+function showMockPopup(message) {
+    const popup = document.getElementById("notification-popup");
+    popup.textContent = message;
+    popup.style.display = "block";
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        popup.style.display = "none";
+    }, 3000);
+}
+
+// Start mock notifications
+function startMockNotifications() {
+    if (mockInterval) return; // already running
+    
+    showNotification("📩 Mock notifications started!", "info");
+
+    mockInterval = setInterval(() => {
+        if (mockIndex >= mockNotifications.length) {
+            clearInterval(mockInterval);
+            mockInterval = null;
+            showNotification("✅ All mock notifications processed!", "success");
+            return;
+        }
+
+        const message = mockNotifications[mockIndex];
+        processMockNotification(message);
+        mockIndex++;
+    }, 5000); // every 5 seconds
+}
+
+// Process a notification into a transaction
+function processMockNotification(message) {
+    let type, amount, category;
+
+    if (message.toLowerCase().includes("credited")) {
+        type = "income";
+        category = "Salary";
+    } else {
+        type = "expense";
+        if (message.toLowerCase().includes("amazon")) category = "Shopping";
+        else if (message.toLowerCase().includes("uber")) category = "Transportation";
+        else if (message.toLowerCase().includes("rent")) category = "Housing";
+        else category = "Other";
+    }
+
+    const amtMatch = message.match(/₹(\d+)/);
+    amount = amtMatch ? parseFloat(amtMatch[1]) : 0;
+
+    const newTransaction = {
+        type,
+        amount,
+        category,
+        note: message,
+        date: new Date().toISOString().split("T")[0]
+    };
+
+    // Save to backend
+    financeData.transactions.push(newTransaction);
+    saveDataToServer();
+    updateUI();
+
+    // Show popup on screen
+    showMockPopup(message);
+}
