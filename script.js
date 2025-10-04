@@ -991,19 +991,23 @@ function startMockNotifications() {
     }, 5000); // every 5 seconds
 }
 
-// Process a notification into a transaction
+
+
 function processMockNotification(message) {
     let type, amount, category;
 
     if (message.toLowerCase().includes("credited")) {
         type = "income";
         category = "Salary";
+        financeData.balance += amount; // update balance
     } else {
         type = "expense";
         if (message.toLowerCase().includes("amazon")) category = "Shopping";
         else if (message.toLowerCase().includes("uber")) category = "Transportation";
         else if (message.toLowerCase().includes("rent")) category = "Housing";
         else category = "Other";
+
+        financeData.balance -= amount; // update balance
     }
 
     const amtMatch = message.match(/₹(\d+)/);
@@ -1017,11 +1021,16 @@ function processMockNotification(message) {
         date: new Date().toISOString().split("T")[0]
     };
 
-    // Save to backend
+    // Add to transactions array
     financeData.transactions.push(newTransaction);
+
+    // Save the entire financeData object
     saveDataToServer();
+
+    // Update UI
     updateUI();
 
-    // Show popup on screen
+    // Show popup
     showMockPopup(message);
 }
+
