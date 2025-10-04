@@ -910,6 +910,16 @@ if ('webkitSpeechRecognition' in window) {
   console.warn("Web Speech API not supported in this browser");
 }
 
+function showMockPopup(message) {
+    const popup = document.getElementById("notification-popup");
+    popup.textContent = message;
+    popup.style.display = "block";
+
+    setTimeout(() => {
+        popup.style.display = "none";
+    }, 3000);
+}
+
 let notificationInterval = null;
 
 function startMockNotifications() {
@@ -1011,4 +1021,5 @@ function processSpokenTransaction(text) {
     renderTransactions([tx]);
   }
 }
+
 
