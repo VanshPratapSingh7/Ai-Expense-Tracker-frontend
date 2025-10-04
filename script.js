@@ -910,6 +910,71 @@ if ('webkitSpeechRecognition' in window) {
   console.warn("Web Speech API not supported in this browser");
 }
 
+let notificationInterval = null;
+
+function startMockNotifications() {
+    if (notificationInterval) return; // already running
+    
+    showNotification("📩 Mock notifications started!", "info");
+
+    notificationInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`${API_URL}/next-notification`);
+            const json = await res.json();
+
+            if (json.success) {
+                processMockNotification(json.notification);
+            } else {
+                clearInterval(notificationInterval);
+                notificationInterval = null;
+                showNotification("✅ All mock notifications processed!", "success");
+            }
+        } catch (err) {
+            console.error("Error fetching mock notification:", err);
+        }
+    }, 5000); // every 5 seconds
+}
+
+function processMockNotification(message) {
+    let type, amount, category;
+
+    const amtMatch = message.match(/₹(\d+)/);
+    amount = amtMatch ? parseFloat(amtMatch[1]) : 0;
+
+    if (message.toLowerCase().includes("credited")) {
+        type = "income";
+        category = "Salary";
+        financeData.balance += amount;
+    } else {
+        type = "expense";
+        if (message.toLowerCase().includes("amazon")) category = "Shopping";
+        else if (message.toLowerCase().includes("uber")) category = "Transportation";
+        else if (message.toLowerCase().includes("rent")) category = "Housing";
+        else category = "Other";
+        financeData.balance -= amount;
+    }
+
+    const newTransaction = {
+        type,
+        amount,
+        category,
+        note: message,
+        date: new Date().toISOString().split("T")[0]
+    };
+
+    financeData.transactions.push(newTransaction);
+
+    if (!financeData.categories[category]) {
+        financeData.categories[category] = 0;
+    }
+    financeData.categories[category] += amount;
+
+    saveDataToServer();
+    updateUI();
+    showMockPopup(message);
+}
+
+
 // --- Parser for spoken text ---
 function processSpokenTransaction(text) {
   // 🟢 Step 1: Put the spoken text into the SMS input box
@@ -946,3 +1011,4 @@ function processSpokenTransaction(text) {
     renderTransactions([tx]);
   }
 }
+
