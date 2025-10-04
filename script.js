@@ -987,3 +987,61 @@ function showMockPopup(message) {
 
     setTimeout(() => popup.remove(), 3000);
 }
+
+// Chat toggle
+document.getElementById("chat-toggle").addEventListener("click", () => {
+    document.getElementById("chat-box").style.display = "flex";
+    document.getElementById("chat-toggle").style.display = "none";
+});
+
+document.getElementById("chat-close").addEventListener("click", () => {
+    document.getElementById("chat-box").style.display = "none";
+    document.getElementById("chat-toggle").style.display = "block";
+});
+
+// Send message
+document.getElementById("chat-send").addEventListener("click", sendMessage);
+document.getElementById("chat-input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") sendMessage();
+});
+
+function appendMessage(sender, text) {
+    const msgContainer = document.createElement("div");
+    msgContainer.textContent = sender + ": " + text;
+    document.getElementById("chat-messages").appendChild(msgContainer);
+    document.getElementById("chat-messages").scrollTop = document.getElementById("chat-messages").scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById("chat-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendMessage("You", message);
+    input.value = "";
+
+    // Call AI backend (dummy for now)
+    appendMessage("AI", "🤖 Thinking...");
+
+    try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer YOUR_OPENAI_API_KEY"
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini", // Or GPT-3.5/other model
+                messages: [{ role: "user", content: message }]
+            })
+        });
+
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+        
+        document.getElementById("chat-messages").lastChild.textContent = "AI: " + reply;
+    } catch (err) {
+        document.getElementById("chat-messages").lastChild.textContent = "AI: ❌ Error connecting to AI.";
+        console.error(err);
+    }
+}
