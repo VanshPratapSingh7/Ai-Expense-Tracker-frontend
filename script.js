@@ -948,5 +948,42 @@ function processSpokenTransaction(text) {
   }
 }
 
+let notificationInterval = null;
 
+function startMockNotifications() {
+    if (notificationInterval) return; // already running
 
+    showNotification("📩 Starting mock notifications...", "info");
+
+    notificationInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`${API_URL}/next-notification`);
+            const json = await res.json();
+
+            if (json.success) {
+                processTransactionFromNotification(json.notification);
+            } else {
+                clearInterval(notificationInterval);
+                notificationInterval = null;
+                showNotification("✅ All mock notifications processed!", "success");
+            }
+        } catch (err) {
+            console.error("Error fetching mock notification:", err);
+        }
+    }, 5000); // every 5s
+}
+
+function processTransactionFromNotification(message) {
+    document.getElementById("smsInput").value = message;
+    processTransaction(); // reuse existing parser
+}
+
+function showMockPopup(message) {
+    const popup = document.createElement("div");
+    popup.className = "notification-popup";
+    popup.textContent = message;
+    document.body.appendChild(popup);
+    popup.style.display = "block";
+
+    setTimeout(() => popup.remove(), 3000);
+}
